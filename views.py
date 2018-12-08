@@ -3,6 +3,9 @@ from django.shortcuts import render
 from django.shortcuts import redirect, render_to_response, HttpResponse
 from django.shortcuts import HttpResponseRedirect
 from django.contrib.auth import login as django_login
+from django.contrib.auth.decorators import login_required
+
+
 
 import json
 import twitter
@@ -15,6 +18,7 @@ from django_twitter_auth.models import TwitterUser
 
 # Create your views here.
 
+@login_required
 def trends(request, woe_id):
 
     tokens = TwitterUser.objects.filter(
