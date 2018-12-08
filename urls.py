@@ -1,0 +1,11 @@
+
+
+
+
+from django.urls import path
+from django_twitter_mining import views
+from django.conf.urls import url
+
+urlpatterns = [
+    url(r'^trends/(?P<woe_id>[0-9]+)/$', views.trends),
+]
