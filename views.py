@@ -47,5 +47,15 @@ def trends(request, woe_id):
 
     print(json.dumps(my_trends, indent=1))
 #     return HttpResponse(json.dumps(my_trends), content_type="application/json")
-    return JsonResponse(json.dumps(my_trends), safe=False)
+    return JsonResponse(my_trends, safe=False)
+
+
+@login_required
+def search(request, q, max_results=200, **kwargs):
+    twitter_api = _get_twitter_api(request)
+
+    results = twitter_api.search.tweets(q=q, count=100, **kwargs)
+    statuses = results['statuses']
+
+    return JsonResponse(statuses, safe=False)
 

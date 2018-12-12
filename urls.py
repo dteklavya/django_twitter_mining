@@ -8,4 +8,5 @@ from django.conf.urls import url
 
 urlpatterns = [
     url(r'^trends/(?P<woe_id>[0-9]+)/$', views.trends),
+    url(r'^search/(?P<q>[0-9a-zA-Z]+)/$', views.search),
 ]
