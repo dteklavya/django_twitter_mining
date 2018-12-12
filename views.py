@@ -14,11 +14,8 @@ import twitter
 from django_twitter_auth.config import *
 from django_twitter_auth.models import TwitterUser
 
-# Create your views here.
 
-@login_required
-def trends(request, woe_id):
-
+def _get_twitter_api(request):
     tokens = TwitterUser.objects.filter(
         username=request.user).values_list('OAUTH_TOKEN', 'OAUTH_TOKEN_SECRET')
     oauth_token, oauth_token_secret = tokens[0][0], tokens[0][1]
@@ -26,7 +23,15 @@ def trends(request, woe_id):
     auth = twitter.oauth.OAuth(oauth_token, oauth_token_secret,
                                    CONSUMER_KEY, CONSUMER_SECRET)
 
-    twitter_api = twitter.Twitter(auth=auth)
+    return twitter.Twitter(auth=auth)
+
+
+# Create your views here.
+
+@login_required
+def trends(request, woe_id):
+
+    twitter_api = _get_twitter_api(request)
 
     trends = twitter_api.trends.place(_id=woe_id)
 #     print(json.dumps(trends, indent=1))
