@@ -9,10 +9,7 @@ from django.contrib.auth.decorators import login_required
 
 import json
 import twitter
-from twitter.oauth_dance import parse_oauth_tokens
-from twitter.oauth import read_token_file, write_token_file
 
-import django_twitter_auth
 from django_twitter_auth.config import *
 from django_twitter_auth.models import TwitterUser
 
@@ -44,5 +41,4 @@ def trends(request, woe_id):
 
     print(my_trends)
     return HttpResponse(json.dumps(my_trends, indent=1))
-
 
