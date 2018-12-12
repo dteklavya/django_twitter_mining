@@ -57,5 +57,20 @@ def search(request, q, max_results=200, **kwargs):
     results = twitter_api.search.tweets(q=q, count=100, **kwargs)
     statuses = results['statuses']
 
+    max_results = min(1000, max_results)
+    for i in range(10):
+        try:
+            next_results = results['search_metadata']['next_results']
+        except KeyError as e:
+            break
+        kw = dict([ kv.split('=')
+                   for kv in next_results[1:].split('&') ])
+        results = twitter_api.search.tweets(**kw)
+        statuses += results['statuses']
+
+        if len(statuses) > max_results:
+            break
+
     return JsonResponse(statuses, safe=False)
+
 
