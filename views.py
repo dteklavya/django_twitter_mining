@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render_to_response, HttpResponse
 from django.shortcuts import HttpResponseRedirect
 from django.contrib.auth import login as django_login
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
 
 
@@ -39,6 +40,7 @@ def trends(request, woe_id):
                 'tweet_volume': trend['tweet_volume'],
                 'url': trend['url']})
 
-    print(my_trends)
-    return HttpResponse(json.dumps(my_trends, indent=1))
+    print(json.dumps(my_trends, indent=1))
+#     return HttpResponse(json.dumps(my_trends), content_type="application/json")
+    return JsonResponse(json.dumps(my_trends), safe=False)
 
