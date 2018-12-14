@@ -6,8 +6,6 @@ from django.contrib.auth import login as django_login
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 
-
-
 import json
 import twitter
 
@@ -15,7 +13,7 @@ from django_twitter_auth.config import *
 from django_twitter_auth.models import TwitterUser
 
 
-def _get_twitter_api(request):
+def _oauth_twitter_login(request):
     tokens = TwitterUser.objects.filter(
         username=request.user).values_list('OAUTH_TOKEN', 'OAUTH_TOKEN_SECRET')
     oauth_token, oauth_token_secret = tokens[0][0], tokens[0][1]
@@ -25,13 +23,13 @@ def _get_twitter_api(request):
 
     return twitter.Twitter(auth=auth)
 
-
 # Create your views here.
+
 
 @login_required
 def trends(request, woe_id):
 
-    twitter_api = _get_twitter_api(request)
+    twitter_api = _oauth_twitter_login(request)
 
     trends = twitter_api.trends.place(_id=woe_id)
 #     print(json.dumps(trends, indent=1))
@@ -52,7 +50,7 @@ def trends(request, woe_id):
 
 @login_required
 def search(request, q, max_results=200, **kwargs):
-    twitter_api = _get_twitter_api(request)
+    twitter_api = _oauth_twitter_login(request)
 
     results = twitter_api.search.tweets(q=q, count=100, **kwargs)
     statuses = results['statuses']
@@ -72,5 +70,4 @@ def search(request, q, max_results=200, **kwargs):
             break
 
     return JsonResponse(statuses, safe=False)
-
 
