@@ -12,6 +12,8 @@ import twitter
 from django_twitter_auth.config import *
 from django_twitter_auth.models import TwitterUser
 
+from .models import *
+
 
 def _oauth_twitter_login(request):
     tokens = TwitterUser.objects.filter(
@@ -48,6 +50,17 @@ def trends(request, woe_id):
     return JsonResponse(my_trends, safe=False)
 
 
+from bson import ObjectId
+
+
+class JSONEncoder(json.JSONEncoder):
+
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        return json.JSONEncoder.default(self, o)
+
+
 @login_required
 def search(request, q, max_results=200, **kwargs):
     twitter_api = _oauth_twitter_login(request)
@@ -69,5 +82,7 @@ def search(request, q, max_results=200, **kwargs):
         if len(statuses) > max_results:
             break
 
-    return JsonResponse(statuses, safe=False)
+    if len(statuses):
+        ni = save_to_mongo(statuses, 'search_results', q)
+    return HttpResponse(JSONEncoder().encode(statuses), content_type="application/json")
 
