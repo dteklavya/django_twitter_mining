@@ -82,6 +82,10 @@ def search(request, q, max_results=200, **kwargs):
         if len(statuses) > max_results:
             break
 
+    # Save the results in Mongo DB.
+    # FIXME: Strangely, call to pymongo.insert rewrites the data sent to save.
+    # That's the reason, using our custome JSON encoder.
+    # This needs to be figured out.
     if len(statuses):
         ni = save_to_mongo(statuses, 'search_results', q)
     return HttpResponse(JSONEncoder().encode(statuses), content_type="application/json")

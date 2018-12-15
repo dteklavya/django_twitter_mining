@@ -15,6 +15,7 @@ def save_to_mongo(data, mongo_db, mongo_db_coll, **mongo_conn_kw):
     # Reference a particular collection in the database
     coll = db[mongo_db_coll]
     # Perform a bulk insert and return the IDs
+    # FIXEM: Why should insert_many overwrite the 'data', it messes up the JSON encoder.
     num_inserted = coll.insert_many(data)
     return num_inserted
 
