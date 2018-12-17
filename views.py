@@ -5,9 +5,11 @@ from django.shortcuts import HttpResponseRedirect
 from django.contrib.auth import login as django_login
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.http import StreamingHttpResponse
 
 import json
 import twitter
+import time
 
 from django_twitter_auth.config import *
 from django_twitter_auth.models import TwitterUser
@@ -90,3 +92,28 @@ def search(request, q, max_results=200, **kwargs):
         ni = save_to_mongo(statuses, 'search_results', q)
     return HttpResponse(JSONEncoder().encode(statuses), content_type="application/json")
 
+
+@login_required
+def streaming_results(request, q):
+    # Return the Streaming response to client.
+    return StreamingHttpResponse(stream_results_generator(request, q))
+
+
+# Generator method.
+def stream_results_generator(request, q):
+    twitter_api = _oauth_twitter_login(request)
+
+    tokens = TwitterUser.objects.filter(
+        username=request.user).values_list('OAUTH_TOKEN', 'OAUTH_TOKEN_SECRET')
+    oauth_token, oauth_token_secret = tokens[0][0], tokens[0][1]
+
+    auth = twitter.oauth.OAuth(oauth_token, oauth_token_secret,
+                                   CONSUMER_KEY, CONSUMER_SECRET)
+
+    twitter_stream = twitter.TwitterStream(auth=auth)
+
+    stream = twitter_stream.statuses.filter(track=q)
+
+    for tweet in stream:
+        yield tweet['text']
+        time.sleep(1)
