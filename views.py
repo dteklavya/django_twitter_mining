@@ -10,6 +10,7 @@ from django.http import StreamingHttpResponse
 import json
 import twitter
 import time
+from bson import ObjectId
 
 from django_twitter_auth.config import *
 from django_twitter_auth.models import TwitterUser
@@ -35,24 +36,7 @@ def trends(request, woe_id):
 
     twitter_api = _oauth_twitter_login(request)
 
-    trends = twitter_api.trends.place(_id=woe_id)
-#     print(json.dumps(trends, indent=1))
-
-    # Some basic filters for trending topics
-    my_trends = []
-    for trend in trends[0]['trends']:
-        if trend['tweet_volume'] != None:
-            my_trends.append({
-                'name': trend['name'],
-                'tweet_volume': trend['tweet_volume'],
-                'url': trend['url']})
-
-    print(json.dumps(my_trends, indent=1))
-#     return HttpResponse(json.dumps(my_trends), content_type="application/json")
-    return JsonResponse(my_trends, safe=False)
-
-
-from bson import ObjectId
+    return JsonResponse(twitter_trends(twitter_api, woe_id), safe=False)
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -117,3 +101,18 @@ def stream_results_generator(request, q):
     for tweet in stream:
         yield tweet['text']
         time.sleep(1)
+
+
+def twitter_trends(twitter_api, woe_id):
+    trends = twitter_api.trends.place(_id=woe_id)
+
+    # Some basic filters for trending topics
+    my_trends = []
+    for trend in trends[0]['trends']:
+        if trend['tweet_volume'] != None:
+            my_trends.append({
+                'name': trend['name'],
+                'tweet_volume': trend['tweet_volume'],
+                'url': trend['url']})
+
+    return my_trends
