@@ -11,6 +11,8 @@ import json
 import twitter
 import time
 from bson import ObjectId
+import datetime
+import sys
 
 from django_twitter_auth.config import *
 from django_twitter_auth.models import TwitterUser
@@ -120,3 +122,27 @@ def twitter_Search(twitter_api, q, max_results=200, **kwargs):
         ni = save_to_mongo(statuses, 'search_results', q)
     return JSONEncoder().encode(statuses)
 
+
+def twitter_time_Series_data(twitter_api, api_func, mongo_db_name, mongo_db_coll,
+                             secs_per_interval=60, max_interval=15, **mongo_conn_kwargs):
+
+    # Default settings of 15 intervals and 1 API call per interval ensure that
+    # you will not exceed the Twitter rate limit.
+
+    interval = 0
+
+    while True:
+
+        # A timestamp of the form '2018-12-17 15:39:39'
+        now = str(datetime.datetime.now()).split(".")[0]
+
+        ids = save_to_mongo(api_func(), mongo_db_name, mongo_db_coll, "-" + now)
+
+        print("Write {0} trends".format(len(ids)), file=sys.stderr)
+        print("Zzz...", file=sys.stderr)
+        sys.stderr.flush()
+
+        time.sleep(secs_per_interval) # seconds
+        interval += 1
+        if interval >= 15:
+            break
