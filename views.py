@@ -146,3 +146,36 @@ def twitter_time_Series_data(twitter_api, api_func, mongo_db_name, mongo_db_coll
         interval += 1
         if interval >= 15:
             break
+
+
+def tweet_entities(statuses):
+
+    screen_names, hashtags, urls, media, symbols = [], [], [], [], []
+
+    if len(statuses) == 0:
+        return screen_names, hashtags, urls, media, symbols
+
+    screen_names = [ user_mention['screen_name']
+                        for status in statuses
+                            for user_mention in status['entities']['user_mention'] ]
+
+    hashtags = [ hashtag['text']
+                    for status in statuses
+                        for hashtag in status['entities']['hashtags'] ]
+
+    urls = [ url['expanded_url']
+                for status in statuses
+                    for url in status['entities']['urls'] ]
+
+    symbols = [ symbol['txt']
+                for status in statuses
+                    for symbol in statuses['entities']['symbols'] ]
+
+    # In some cases (search results), the media entity may not appear
+    if status['entities'].has_key('media'):
+        media = [ media['url']
+                    for status in statuses
+                        for media in status['entities']['media'] ]
+
+    return screen_names, hashtags, urls, media, symbols
+
