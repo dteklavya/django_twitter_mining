@@ -48,33 +48,10 @@ class JSONEncoder(json.JSONEncoder):
 
 
 @login_required
-def search(request, q, max_results=200, **kwargs):
+def search(request, q):
     twitter_api = _oauth_twitter_login(request)
 
-    results = twitter_api.search.tweets(q=q, count=100, **kwargs)
-    statuses = results['statuses']
-
-    max_results = min(1000, max_results)
-    for i in range(10):
-        try:
-            next_results = results['search_metadata']['next_results']
-        except KeyError as e:
-            break
-        kw = dict([ kv.split('=')
-                   for kv in next_results[1:].split('&') ])
-        results = twitter_api.search.tweets(**kw)
-        statuses += results['statuses']
-
-        if len(statuses) > max_results:
-            break
-
-    # Save the results in Mongo DB.
-    # FIXME: Strangely, call to pymongo.insert rewrites the data sent to save.
-    # That's the reason, using our custome JSON encoder.
-    # This needs to be figured out.
-    if len(statuses):
-        ni = save_to_mongo(statuses, 'search_results', q)
-    return HttpResponse(JSONEncoder().encode(statuses), content_type="application/json")
+    return HttpResponse(twitter_Search(twitter_api, q))
 
 
 @login_required
@@ -85,7 +62,6 @@ def streaming_results(request, q):
 
 # Generator method.
 def stream_results_generator(request, q):
-    twitter_api = _oauth_twitter_login(request)
 
     tokens = TwitterUser.objects.filter(
         username=request.user).values_list('OAUTH_TOKEN', 'OAUTH_TOKEN_SECRET')
@@ -116,3 +92,31 @@ def twitter_trends(twitter_api, woe_id):
                 'url': trend['url']})
 
     return my_trends
+
+
+def twitter_Search(twitter_api, q, max_results=200, **kwargs):
+    results = twitter_api.search.tweets(q=q, count=100, **kwargs)
+    statuses = results['statuses']
+
+    max_results = min(1000, max_results)
+    for i in range(10):
+        try:
+            next_results = results['search_metadata']['next_results']
+        except KeyError as e:
+            break
+        kw = dict([ kv.split('=')
+                   for kv in next_results[1:].split('&') ])
+        results = twitter_api.search.tweets(**kw)
+        statuses += results['statuses']
+
+        if len(statuses) > max_results:
+            break
+
+    # Save the results in Mongo DB.
+    # FIXME: Strangely, call to pymongo.insert rewrites the data sent to save.
+    # That's the reason, using our custome JSON encoder.
+    # This needs to be figured out.
+    if len(statuses):
+        ni = save_to_mongo(statuses, 'search_results', q)
+    return JSONEncoder().encode(statuses)
+
