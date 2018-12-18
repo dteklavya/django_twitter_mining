@@ -22,7 +22,7 @@ def trends(request, woe_id):
 def search(request, q):
     twitter_api = oauth_twitter_login(request.user)
 
-    return HttpResponse(twitter_Search(twitter_api, q))
+    return JsonResponse(twitter_Search(twitter_api, q), safe=False)
 
 
 @login_required
@@ -30,3 +30,9 @@ def streaming_results(request, q):
     # Return the Streaming response to client.
     return StreamingHttpResponse(stream_results_generator(request.user, q))
 
+
+@login_required
+def search_popular(request, q):
+    twitter_api = oauth_twitter_login(request.user)
+
+    return JsonResponse(twitter_Search(twitter_api, q, popular=True), safe=False)

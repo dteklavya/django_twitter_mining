@@ -76,7 +76,7 @@ def twitter_trends(twitter_api, woe_id):
     return my_trends
 
 
-def twitter_Search(twitter_api, q, max_results=200, **kwargs):
+def twitter_Search(twitter_api, q, max_results=200, popular=False, **kwargs):
     results = twitter_api.search.tweets(q=q, count=100, **kwargs)
     statuses = results['statuses']
 
@@ -93,6 +93,9 @@ def twitter_Search(twitter_api, q, max_results=200, **kwargs):
 
         if len(statuses) > max_results:
             break
+
+    if popular:
+        statuses = get_popular_tweets(statuses)
 
     # Save the results in Mongo DB.
     # FIXME: Strangely, call to pymongo.insert rewrites the data sent to save.
@@ -166,4 +169,10 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, ObjectId):
             return str(o)
         return json.JSONEncoder.default(self, o)
+
+
+def get_popular_tweets(statuses, retweet_threshold=3):
+    return [ status
+                for status in statuses
+                    if status['retweet_count'] > retweet_threshold ]
 
