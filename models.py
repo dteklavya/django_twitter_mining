@@ -172,7 +172,15 @@ class JSONEncoder(json.JSONEncoder):
 
 
 def get_popular_tweets(statuses, retweet_threshold=3):
-    return [ status
+
+    st = [ status
                 for status in statuses
                     if status['retweet_count'] > retweet_threshold ]
+
+    for status in st:
+        for k, v in enumerate(status):
+            print(v)
+#     with open('twitter_response/tweet_responses_json', mode='w', encoding='utf=8') as O:
+#         print(json.dumps(status, indent=1), file=O)
+    return st
 
