@@ -11,7 +11,7 @@ from .models import *
 
 
 @login_required
-def trends(request, woe_id):
+def trends(request, woe_id=55959675):
 
     twitter_api = oauth_twitter_login(request.user)
 
@@ -20,7 +20,7 @@ def trends(request, woe_id):
 
 @login_required
 def search(request, q):
-    twitter_api = oauth_twitter_login(request.user)
+    twitter_api = oauth_twitter_login(request, request.user)
 
     return JsonResponse(twitter_Search(twitter_api, q), safe=False)
 
