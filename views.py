@@ -1,7 +1,8 @@
-from django.shortcuts import HttpResponse
+from django.shortcuts import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.http import StreamingHttpResponse
+from django.views.decorators.http import require_http_methods
 
 from django_twitter_auth.models import *
 
@@ -19,7 +20,13 @@ def trends(request, woe_id=55959675):
 
 
 @login_required
-def search(request, q):
+@require_http_methods(["POST"])
+def search(request):
+    q = request.POST.get('q', '')
+
+    if not q:
+        return HttpResponseRedirect(request.build_absolute_uri('/'))
+
     twitter_api = oauth_twitter_login(request, request.user)
 
     return JsonResponse(twitter_Search(twitter_api, q), safe=False)
