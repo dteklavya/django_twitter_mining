@@ -6,6 +6,9 @@ from django.views.decorators.http import require_http_methods
 
 from django_twitter_auth.models import *
 
+from celery import current_app
+from .tasks import get_search_results
+
 from .models import *
 
 # Create your views here.
@@ -27,9 +30,20 @@ def search(request):
     if not q:
         return HttpResponseRedirect(request.build_absolute_uri('/'))
 
-    twitter_api = oauth_twitter_login(request, request.user)
+    if not request.user.is_authenticated:
+        twitter_api = oauth_twitter_login(request, request.user)
 
-    return JsonResponse(twitter_Search(twitter_api, q), safe=False)
+    # Call the Celery task to get search results from twitter and store it.
+    # Where in Redis? RabitMQ? or SQL DB?
+
+    task = get_search_results.delay(request.user.username, q)
+    print(f"id={task.id}, state={task.state}, status={task.status}")
+
+    # Return response to user that the task has been submitted.
+
+    # Also, write a view to display task progress on browser.
+    # return JsonResponse(twitter_Search(twitter_api, q), safe=False)
+    return JsonResponse({'Response': 'Twitter Search has been kicked off!'})
 
 
 @login_required
