@@ -101,8 +101,8 @@ def twitter_Search(twitter_api, q, max_results=200, popular=False, **kwargs):
     # FIXME: Strangely, call to pymongo.insert rewrites the data sent to save.
     # That's the reason, using our custome JSON encoder.
     # This needs to be figured out.
-    if len(statuses):
-        ni = save_to_mongo(statuses, 'search_results', q)
+    # if len(statuses):
+    #     ni = save_to_mongo(statuses, 'search_results', q)
     return JSONEncoder().encode(statuses)
 
 
