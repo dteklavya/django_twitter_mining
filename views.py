@@ -21,11 +21,15 @@ def trends(request, woe_id=55959675):
 
     return JsonResponse(twitter_trends(twitter_api, woe_id), safe=False)
 
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
 
-@login_required
-@require_http_methods(["POST"])
+# @require_http_methods(["POST", "GET"])
+# @login_required
+@csrf_exempt
+@api_view(['POST'])
 def search(request):
-    q = request.POST.get('q', '')
+    q = request.data.get('q', '')
 
     if not q:
         return HttpResponseRedirect(request.build_absolute_uri('/'))
