@@ -21,7 +21,7 @@ def save_to_mongo(data, mongo_db, mongo_db_coll, **mongo_conn_kw):
     # Reference a particular collection in the database
     coll = db[mongo_db_coll]
     # Perform a bulk insert and return the IDs
-    # FIXEM: Why should insert_many overwrite the 'data', it messes up the JSON encoder.
+    # FIXME: Why should insert_many overwrite the 'data', it messes up the JSON encoder.
     num_inserted = coll.insert_many(data)
     return num_inserted
 
@@ -103,6 +103,14 @@ def twitter_Search(twitter_api, q, max_results=200, popular=False, **kwargs):
     # This needs to be figured out.
     # if len(statuses):
     #     ni = save_to_mongo(statuses, 'search_results', q)
+
+    # Figure out how and when to kick start the search? A POST from client or a config param?
+    # TODO: Save search results/elements to DB or cache. HERE.
+    # TODO: Write REST API calls to return search data. In main project reactDj.
+    # TODO: Find a way to return status message on the quantum of tweets received and pending.
+    # TODO: Use the twitter_analysis app to find, store and return tweet's sentiment.
+    # TODO: Sentiment analysis must be done in Celery as async task with an API to feed the totals.
+
     return JSONEncoder().encode(statuses)
 
 

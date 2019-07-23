@@ -7,7 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django_twitter_auth.models import *
 
 from celery import current_app
-from .tasks import get_search_results
+from .tasks import get_search_results, start_app_search
 
 from .models import *
 
@@ -48,6 +48,20 @@ def search(request):
     # Also, write a view to display task progress on browser.
     # return JsonResponse(twitter_Search(twitter_api, q), safe=False)
     return JsonResponse({'Response': 'Twitter Search has been kicked off!'})
+
+
+@csrf_exempt
+@api_view(['POST'])
+def app_search(request):
+    q = request.data.get('q', '')
+
+    if not q:
+        return JsonResponse({'Response': 'Bad search query'})
+
+    task = start_app_search.delay(q)
+    print(f"id={task.id}, state={task.state}, status={task.status}")
+
+    return JsonResponse({'Response': 'Twitter Search has been kicked off with task ID: ' + task.id})
 
 
 @login_required
