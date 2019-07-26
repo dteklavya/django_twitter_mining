@@ -3,10 +3,16 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.http import StreamingHttpResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
 
 from django_twitter_auth.models import *
 
-from celery import current_app
+from celery import Celery
+from celery.result import AsyncResult
+from reactDj.celery import celery_app
+
+# from celery import current_app
 from .tasks import get_search_results, start_app_search
 
 from .models import *
@@ -21,8 +27,6 @@ def trends(request, woe_id=55959675):
 
     return JsonResponse(twitter_trends(twitter_api, woe_id), safe=False)
 
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view
 
 # @require_http_methods(["POST", "GET"])
 # @login_required
@@ -75,3 +79,12 @@ def search_popular(request, q):
     twitter_api = oauth_twitter_login(request.user)
 
     return JsonResponse(twitter_Search(twitter_api, q, popular=True), safe=False)
+
+
+@api_view(['GET'])
+def get_task_state(request, task_id):
+    if not task_id:
+        return JsonResponse({'Response': 'Bad task ID.'})
+
+    result = celery_app.AsyncResult(task_id, app=celery_app)
+    return JsonResponse({ 'Response': result.result})
