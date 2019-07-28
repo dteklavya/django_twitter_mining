@@ -28,8 +28,6 @@ def trends(request, woe_id=55959675):
     return JsonResponse(twitter_trends(twitter_api, woe_id), safe=False)
 
 
-# @require_http_methods(["POST", "GET"])
-# @login_required
 @csrf_exempt
 @api_view(['POST'])
 def search(request):
@@ -65,7 +63,7 @@ def app_search(request):
     task = start_app_search.delay(q)
     print(f"id={task.id}, state={task.state}, status={task.status}")
 
-    return JsonResponse({'Response': 'Twitter Search has been kicked off with task ID: ' + task.id})
+    return JsonResponse({'task_id': task.id})
 
 
 @login_required
@@ -83,8 +81,11 @@ def search_popular(request, q):
 
 @api_view(['GET'])
 def get_task_state(request, task_id):
+    '''
+        Return current state for Celery task.
+    '''
     if not task_id:
         return JsonResponse({'Response': 'Bad task ID.'})
 
     result = celery_app.AsyncResult(task_id, app=celery_app)
-    return JsonResponse({ 'Response': result.result})
+    return JsonResponse( result.result )
